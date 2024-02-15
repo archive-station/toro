@@ -3,7 +3,7 @@ import {handleRequest} from "./handler/server.js"
 const ac = new AbortController();
 
 const server = Deno.serve({
-  port: 80,
+  port: 8080,
   hostname: "0.0.0.0",
   handler: (_req) => handleRequest(_req),
   signal: ac.signal,

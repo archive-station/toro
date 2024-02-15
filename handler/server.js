@@ -14,11 +14,33 @@ export async function handleRequest(_req) {
         return new Response(null, {status: 200})
     }
 
-    console.log(_req.method, url.searchParams, url.pathname);
+    // prevent no errors lol!!!!!! :3
 
+    const filePath = await Deno.realPath(`./archive.${url.pathname}`);
 
+    console.log(filePath)
+    // const filePath = path.join(__dirname, './backup', '.'+originalUrl)
+    let file;
+    if (_req.method === "GET") {
+        try {
+            const fileCheck = Deno.statSync(filePath);
+            if (fileCheck.isDirectory) {
+                throw new Error();
+            }
 
-    return new Response("Hello, World!");
+            
+            file = await Deno.open(filePath, {read: true});
+            
+            
+            
+            console.log('complete!')
+        } catch (err) {
+            // oh hell no!
+        }
+    }
+    const readableStream = file.readable;
+    const res = new Response(readableStream);
+    return await res;
 }
 
 export default handleRequest;
