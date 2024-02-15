@@ -1,2 +1,2 @@
 # toro
-an improved version of mikhails weekly toro station proxy
+weekly toro station proxy, rewrote using deno :3
