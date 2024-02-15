@@ -1,0 +1,6 @@
+{
+    "tasks": {
+      "prod": "deno run --allow-net main.js",
+      "dev": "deno run --watch --allow-net main.js"
+    }
+}  
