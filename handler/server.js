@@ -49,18 +49,16 @@ export async function handleRequest(_req) {
             const current_server = current_servers[Math.floor(Math.random()*current_servers.length)];
             
             request = await fetch(`http://${current_server}/weeklytoro/pd/ps3${pathname}`, {headers: _req.headers});
-            console.log(`http://${current_server}/weeklytoro/pd/ps3${pathname}`)
             const buff = await request.arrayBuffer();
 
             if (!request.ok) {
                 throw new Error();
             }
-            console.log(`http://${current_server}/weeklytoro/pd/ps3${pathname}`);
+
             const arr = new Uint8Array(buff);
             await Deno.mkdirSync(path.dirname(`./archive${pathname}`, {recursive:true}));
             await Deno.writeFile(`./archive${pathname}`, arr);
         } catch (err) {
-            console.log(err);
             if (request.status > 399) {
                 console.log('something fucked up!!!!!!!')
             }
