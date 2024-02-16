@@ -1,11 +1,13 @@
-import config from "../servers.json" assert { type: "json" };
-import { serveDir, serveFile } from "https://deno.land/std@0.207.0/http/file_server.ts";
+import config from "../servers.json" with { type: "json" };
+import { serveFile } from "https://deno.land/std@0.207.0/http/file_server.ts";
+import * as path from "https://deno.land/std@0.188.0/path/mod.ts";
 
 export async function handleRequest(_req) {
     const url = new URL(_req.url);
-    const path = url.pathname;
-    if (path.includes('cgi')) {
+    const pathname = url.pathname;
+    if (pathname.includes('cgi')) {
         // wip: return info to a database
+        
         console.log(`cgi script captured: ${url.href}, method: ${_req.method}`)
         console.log(_req.headers);
         if (_req.body) {
@@ -25,7 +27,7 @@ export async function handleRequest(_req) {
     let file;
     if (_req.method === "GET") {
         try {
-            const filePath = await Deno.realPath(`./archive.${url.pathname}`);
+            const filePath = await Deno.realPath(`./archive.${pathname}`);
             const fileCheck = Deno.statSync(filePath);
             if (fileCheck.isDirectory) {
                 throw new Error();
@@ -33,31 +35,32 @@ export async function handleRequest(_req) {
 
             
            return serveFile(_req, filePath);
-        } catch (err) {
+        } catch (_err) {
             // oh hell no!
         }
     }
     
     
-    let resHeaders = new Headers();
-    if (!file) {
-        let responseRes;
-    
+    const resHeaders = new Headers();
+    if (!file) {    
         let request;
         try {
-            let current_servers = config.servers;
-            let current_server = current_servers[Math.floor(Math.random()*current_servers.length)];
+            const current_servers = config.servers;
+            const current_server = current_servers[Math.floor(Math.random()*current_servers.length)];
             
-            request = await fetch(`http://${current_server}/weeklytoro/pd/ps3${url.pathname}`, {headers: _req.headers});
-            let buff = await request.arrayBuffer();
+            request = await fetch(`http://${current_server}/weeklytoro/pd/ps3${pathname}`, {headers: _req.headers});
+            console.log(`http://${current_server}/weeklytoro/pd/ps3${pathname}`)
+            const buff = await request.arrayBuffer();
 
             if (!request.ok) {
                 throw new Error();
             }
-            console.log(`http://${current_server}/weeklytoro/pd/ps3${url.pathname}`);
-            let arr = new Uint8Array(buff);
-            await Deno.writeFile(`./archive${url.pathname}`, arr);
+            console.log(`http://${current_server}/weeklytoro/pd/ps3${pathname}`);
+            const arr = new Uint8Array(buff);
+            await Deno.mkdirSync(path.dirname(`./archive${pathname}`, {recursive:true}));
+            await Deno.writeFile(`./archive${pathname}`, arr);
         } catch (err) {
+            console.log(err);
             if (request.status > 399) {
                 console.log('something fucked up!!!!!!!')
             }
@@ -69,9 +72,9 @@ export async function handleRequest(_req) {
         }
     
         if (request.status > 399) {
-            return await new Response('toro - the proxy can not find the file!', {status: 404});
+            return await new Response(null, {status: 404});
         } else {
-            return serveFile(_req, `./archive${url.pathname}`);
+            return serveFile(_req, `./archive${pathname}`);
         }
     } 
 }
